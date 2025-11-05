@@ -4,11 +4,15 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.bignerdranch.android.geoquiz.ui.theme.GeoQuizTheme
@@ -21,8 +25,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             GeoQuizTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                    )
+                    Greeting(innerPadding)
                 }
             }
         }
@@ -30,7 +33,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting() {
+fun Greeting(innerPadding: PaddingValues) {
     val questions = listOf(
         Question("Canberra is the capital of Australia.", true),
         Question("The Pacific Ocean is larger than the Atlantic Ocean.", true),
@@ -39,12 +42,17 @@ fun Greeting() {
         Question("The Amazon River is the longest river in the Americas.", true),
         Question("Lake Baikal is the world's oldest and deepest freshwater lake.", true)
     )
+    var currentIndex by remember { mutableIntStateOf(0) }
+    var correctAnswers by remember { mutableIntStateOf(0) }
+    var answered by remember { mutableStateOf(false) }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
     GeoQuizTheme {
-        Greeting()
+        Greeting(
+            innerPadding = PaddingValues()
+        )
     }
 }
