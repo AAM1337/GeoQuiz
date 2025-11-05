@@ -1,35 +1,58 @@
 package com.bignerdranch.android.geoquiz
 
+import android.R
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.bignerdranch.android.geoquiz.ui.theme.GeoQuizTheme
 import com.bignerdranch.android.geoquiz.ui.theme.Question
 
 class MainActivity : ComponentActivity() {
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             GeoQuizTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    topBar = {
+                        CenterAlignedTopAppBar(
+                            title = { Text("GeoQuiz", color = Color.White) },
+                            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                                containerColor = Color(0xFF6200EE)
+                            )
+                        )
+                    }
+                ) { innerPadding ->
                     Greeting(innerPadding)
                 }
             }
@@ -50,60 +73,112 @@ fun Greeting(innerPadding: PaddingValues) {
     var currentIndex by remember { mutableIntStateOf(0) }
     var correctAnswers by remember { mutableIntStateOf(0) }
     var answered by remember { mutableStateOf(false) }
+    var showResult by remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-        if (currentIndex < questions.size) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        if (!showResult) {
             QuestionCard(
                 question = questions[currentIndex],
-                onAnswer = { userAnswer ->
+                answered = answered,
+                onAnswer = { isTrue ->
                     if (!answered) {
-                        if (userAnswer == questions[currentIndex].answer) {
-                            correctAnswers++
-                        }
+                        val correct = questions[currentIndex].answer
+                        if (isTrue == correct) correctAnswers++
                         answered = true
                     }
-                },
-                buttonsEnabled = !answered
-            )
-            if (answered) {
-                Button(
-                    onClick = {
-                        if (currentIndex < questions.lastIndex) {
-                            currentIndex++
-                            answered = false
-                        }
-                    },
-                    enabled = currentIndex < questions.lastIndex
-                ) {
-                    Text("Next")
                 }
+            )
+            Button(
+                onClick = {
+                    if (currentIndex < questions.lastIndex) {
+                        currentIndex++
+                        answered = false
+                    } else {
+                        showResult = true
+                    }
+                },
+                enabled = answered,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF6200EE),
+                    contentColor = Color.White
+                ),
+                modifier = Modifier.width(160.dp)
+            ) {
+                Text("NEXT")
             }
-        }
-        if (currentIndex == questions.lastIndex && answered) {
-            Text("Вы набрали $correctAnswers из ${questions.size}")
+        } else {
+            Text(
+                text = "Вы набрали $correctAnswers из ${questions.size}",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
+            Button(onClick = {
+                currentIndex = 0
+                correctAnswers = 0
+                answered = false
+                showResult = false
+            },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF6200EE),
+                contentColor = Color.White
+            ),
+                ) {
+                Text("Начать сначала")
+            }
         }
     }
 }
+
 @Composable
 fun QuestionCard(
     question: Question,
-    onAnswer: (Boolean) -> Unit,
-    buttonsEnabled: Boolean
+    answered: Boolean,
+    onAnswer: (Boolean) -> Unit
 ) {
-    Column {
-        Text(text = question.text)
-        if (buttonsEnabled) {
-            Row {
-                Button(onClick = { onAnswer(true) }) {
-                    Text("True")
-                }
-                Button(onClick = { onAnswer(false) }) {
-                    Text("False")
-                }
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = question.text,
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(bottom = 32.dp)
+        )
+        Row(
+            modifier = Modifier
+                .padding(bottom = 32.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Button(
+                onClick = { onAnswer(true) },
+                enabled = !answered,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF6200EE),
+                    contentColor = Color.White
+                ),
+                modifier = Modifier.width(120.dp)
+            ) {
+                Text("TRUE")
+            }
+            Button(
+                onClick = { onAnswer(false) },
+                enabled = !answered,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF6200EE),
+                    contentColor = Color.White
+                ),
+                modifier = Modifier.width(120.dp)
+            ) {
+                Text("FALSE")
             }
         }
     }
 }
+
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
